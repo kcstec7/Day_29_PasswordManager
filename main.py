@@ -25,20 +25,40 @@ def clear_fields():
     input_website.focus()
 
 
-def validate_fields(website, username, password):
+def validate_fields(website, username, password, type_validation=None):
     if website == "" or website == WEBSITE_PREFIX:
         messagebox.showwarning(title="Invalid Website!", message="Please enter a Website!")
         input_website.focus()
-    elif username == "" or username == USERNAME_EXAMPLE:
-        messagebox.showwarning(title="Invalid Username!", message="Please enter a Username!")
-        input_username.focus()
-    elif password == "":
-        messagebox.showwarning(title="Invalid Password!", message="Please enter a Password!")
-        input_password.focus()
+    elif type_validation != "search" and (username == "" or username == USERNAME_EXAMPLE):
+            messagebox.showwarning(title="Invalid Username!", message="Please enter a Username!")
+            input_username.focus()
+    elif type_validation != "search" and password == "":
+            messagebox.showwarning(title="Invalid Password!", message="Please enter a Password!")
+            input_password.focus()
     else:
         return True
 
     return False
+
+
+def find_password():
+    website = input_website.get()
+
+    if not validate_fields(website, "", "", "search"):
+        return
+
+    try:
+        with open(FILE_PATH, "r") as json_file:
+            file_data = json.load(json_file)
+    except FileNotFoundError:
+        messagebox.showinfo(title="Error", message="No data file found!")
+    else:
+        if website in file_data:
+            email = file_data[website]["email"]
+            password = file_data[website]["password"]
+            messagebox.showinfo(title=website, message=f"Email: {email}\nPassword: {password}")
+        else:
+            messagebox.showinfo(title="Error", message=f"No details for {website} were found.")
 
 
 def save():
@@ -103,8 +123,11 @@ canvas.grid(row=0, column=0, columnspan=3)
 label_website = tk.Label(text="Website:")
 label_website.grid(row=1, column=0, pady=5)
 
-input_website = tk.Entry(width=39)
+input_website = tk.Entry(width=31)
 input_website.grid(row=1, column=1, columnspan=2, sticky=tk.W)
+
+button_search = tk.Button(text="Search", command=find_password)
+button_search.grid(row=1, column=2, sticky=tk.E, pady=5)
 
 # -------------------------------------------------------------------------------------------------------------------------------------- Username
 label_username = tk.Label(text="Email/Username:")
@@ -117,7 +140,7 @@ input_username.grid(row=2, column=1, columnspan=2, sticky=tk.W)
 label_password = tk.Label(text="Password:")
 label_password.grid(row=3, column=0, pady=5)
 
-input_password = tk.Entry(width=21)
+input_password = tk.Entry(width=20)
 input_password.grid(row=3, column=1, sticky=tk.W)
 
 button_generate = tk.Button(text="Generate password", command=generate_password)
