@@ -2,11 +2,12 @@ import tkinter as tk
 from tkinter import messagebox # It needs to be imported as it's another module (not a class)
 import random
 import pyperclip
+import json
 
 COLOR_WHITE = "#ffffff"
 WEBSITE_PREFIX = "https://"
 USERNAME_EXAMPLE = "your_email@example.com"
-FILE_PATH = "data.txt"
+FILE_PATH = "data.json"
 
 window = tk.Tk()
 window.title("Password Manager")
@@ -48,35 +49,22 @@ def save():
     if not validate_fields(website, username, password):
         return
 
-    confirmation = messagebox.askokcancel(title=website, message=f"These are the details entered: \n\n * Email: {username} \n * Password: {password} \n\nIs it ok to save?")
-    if not confirmation:
-        return
-
-    records = []
-    found = False
+    new_record = {
+        website: {
+            "email": username,
+            "password": password
+        }
+    }
 
     try:
-        with open(FILE_PATH, "r", encoding="utf-8") as file:
-            for row in file:
-                row = row.strip()
-                if not row:  # Skip empty lines
-                    continue
-                row_website, row_username, row_password = row.split(" | ")
-                if row_website == website and row_username == username:
-                    messagebox.showinfo(title="Entry already exists", message="This account already exists! \n\nThe password will be updated...")
-                    records.append(f"{website} | {username} | {password}")
-                    found = True
-                else:
-                    records.append(row)
-    except FileNotFoundError:  # In case the file doesn't exist
-        pass
-
-    if not found: #Then just append it to the file
-        with open("data.txt", "a") as file:
-            file.write(f"{website} | {username} | {password}\n")
-    else: # Overwrite the file's content with the new records
-        with open(FILE_PATH, "w", encoding="utf-8") as file:
-            file.write("\n".join(records) + "\n")
+        with open(FILE_PATH, "r") as json_file:
+            file_data = json.load(json_file)
+            file_data.update(new_record)
+    except FileNotFoundError:
+        file_data = new_record
+    finally:
+        with open(FILE_PATH, "w") as json_file:
+            json.dump(file_data, json_file, indent=4)
 
     clear_fields()
 
