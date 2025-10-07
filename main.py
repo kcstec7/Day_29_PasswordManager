@@ -62,6 +62,7 @@ def find_password():
 
 
 def save():
+
     website = input_website.get()
     username = input_username.get()
     password = input_password.get()
@@ -76,6 +77,7 @@ def save():
         }
     }
 
+    file_data = None # This is just to suppress a warning
     try:
         with open(FILE_PATH, "r") as json_file:
             file_data = json.load(json_file)
@@ -84,7 +86,7 @@ def save():
         file_data = new_record
     finally:
         with open(FILE_PATH, "w") as json_file:
-            json.dump(file_data, json_file, indent=4)
+            json_file.write(json.dumps(file_data, indent=4))
 
     clear_fields()
 
